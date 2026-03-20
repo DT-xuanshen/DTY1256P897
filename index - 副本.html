@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DT联盟</title>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    body {
+        font-family: "Microsoft Yahei", sans-serif;
+        background: #0b0f1a;
+        color: #fff;
+        line-height: 1.6;
+        overflow-x: hidden;
+    }
+
+    .menu-btn {
+        position: fixed;
+        top: 12px;
+        left: 15px;
+        width: 30px;
+        height: 24px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        cursor: pointer;
+        z-index: 100;
+        transition: transform 0.3s ease;
+    }
+    .menu-btn span {
+        width: 100%;
+        height: 3px;
+        background: #fff;
+        border-radius: 2px;
+    }
+    .menu-btn.active {
+        transform: rotate(90deg);
+    }
+
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: -220px;
+        width: 220px;
+        height: 100vh;
+        background: #121a30;
+        padding: 60px 20px 20px;
+        transition: left 0.3s ease;
+        z-index: 99;
+    }
+    .sidebar.show {
+        left: 0;
+    }
+    .sidebar a {
+        display: block;
+        color: #fff;
+        text-decoration: none;
+        padding: 12px 0;
+        font-size: 16px;
+        border-bottom: 1px solid #2a3a5a;
+    }
+    .sidebar a:hover {
+        color: #64b5f6;
+    }
+
+    .scroll-notice {
+        display: flex;
+        align-items: center;
+        background: #000;
+        height: 24px;
+        overflow: hidden;
+        position: relative;
+        margin-top: 0;
+    }
+    .notice-fixed {
+        color: #dc3545;
+        font-weight: bold;
+        padding: 0 10px;
+        background: #000;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        white-space: nowrap;
+        z-index: 2;
+        font-family: "SimHei", "黑体", sans-serif;
+        font-size: 14px;
+    }
+    .scroll-wrap {
+        flex: 1;
+        background: #fff;
+        height: 100%;
+        overflow: hidden;
+        position: relative;
+    }
+    .scroll-notice-content {
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #007bff;
+        white-space: nowrap;
+        animation: scroll 20s linear infinite;
+        padding-left: 10px;
+        font-family: "SimHei", "黑体", "STHeiti", sans-serif;
+        font-size: 14px;
+        font-weight: 900;
+        letter-spacing: 1px;
+    }
+    @keyframes scroll {
+        0% { transform: translate(0, -50%); }
+        100% { transform: translate(-100%, -50%); }
+    }
+
+    header {
+        background: linear-gradient(90deg, #1a237e, #283593);
+        padding: 20px 20px 25px;
+        text-align: center;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+    header h1 {
+        font-size: 2rem;
+        margin-bottom: 8px;
+    }
+    header p {
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+
+    .container {
+        max-width: 100%;
+        margin: 15px auto;
+        padding: 0 15px;
+    }
+    .section {
+        background: #121a30;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 15px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    }
+    .section h2 {
+        color: #64b5f6;
+        margin-bottom: 15px;
+        font-size: 1.2rem;
+        font-family: "KaiTi", "STKaiti", "楷体", "楷书", serif;
+        font-weight: normal;
+        border-bottom: 2px solid #283593;
+        padding-bottom: 8px;
+    }
+    .section p {
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    /* 关于DT联盟内容缩小2号 */
+    #about p {
+        font-size: 0.75rem;
+    }
+
+    /* 旗下部落按钮样式 */
+    .tribe-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+    .tribe-button {
+        background: #1a237e;
+        border: none;
+        border-radius: 6px;
+        padding: 15px 10px;
+        color: #fff;
+        cursor: pointer;
+        transition: background 0.3s, transform 0.3s;
+        font-size: 1.2rem;
+        font-family: "Microsoft Yahei", sans-serif;
+        text-align: center;
+        line-height: 1.4;
+    }
+    .tribe-button:hover {
+        background: #283593;
+        transform: translateY(-3px);
+    }
+    .tribe-button small {
+        display: block;
+        font-size: 0.75rem;
+        opacity: 0.8;
+        margin-top: 5px;
+        font-weight: normal;
+    }
+
+    /* 通用按钮样式（适配新增板块） */
+    .jump-btn {
+        display: block;
+        width: 100%;
+        padding: 14px;
+        background: #1a237e;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+        transition: background 0.3s;
+    }
+    .jump-btn:hover {
+        background: #283593;
+    }
+
+    .overlay {
+        position: fixed;
+        left: 0; top: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.6);
+        z-index: 199;
+        display: none;
+    }
+    .overlay.show {
+        display: block;
+    }
+
+    /* 系列扩张部落主弹窗 */
+    .popup-series {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        background: #1a237e;
+        border-radius: 10px;
+        padding: 25px;
+        width: 280px;
+        z-index: 200;
+        display: none;
+    }
+    .popup-series.show {
+        display: block;
+    }
+    .popup-series h3 {
+        text-align: center;
+        margin-bottom: 15px;
+        color: #64b5f6;
+    }
+    .series-item {
+        padding: 12px;
+        background: #283a5a;
+        border-radius: 6px;
+        text-align: center;
+        margin-bottom: 10px;
+        cursor: pointer;
+    }
+    .series-item:hover {
+        background: #3a4a7a;
+    }
+
+    /* 所有部落类型通用详情弹窗 */
+    .popup-tribe-detail {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        background: #1a237e;
+        border-radius: 10px;
+        padding: 25px;
+        width: 280px;
+        z-index: 206;
+        display: none;
+    }
+    .popup-tribe-detail.show {
+        display: block;
+    }
+    .popup-tribe-detail h3 {
+        text-align: center;
+        margin-bottom: 15px;
+        color: #64b5f6;
+    }
+    .tribe-detail-item {
+        padding: 12px;
+        background: #283a5a;
+        border-radius: 6px;
+        text-align: center;
+        margin-bottom: 10px;
+        cursor: pointer;
+    }
+    .tribe-detail-item:hover {
+        background: #3a4a7a;
+    }
+
+    /* 主力部落标签弹窗样式 - 黑体小四号 */
+    .popup-tribe-tags {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        background: #1a237e;
+        border-radius: 10px;
+        padding: 20px;
+        width: 90%;
+        max-width: 350px;
+        z-index: 205;
+        display: none;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+    .popup-tribe-tags.show {
+        display: block;
+    }
+    .popup-tribe-tags h3 {
+        text-align: center;
+        margin-bottom: 15px;
+        color: #64b5f6;
+        font-size: 1rem;
+    }
+    .tribe-tag-item {
+        padding: 4px 0;
+        font-size: 12px; /* 小四号字体 */
+        line-height: 1.4;
+        font-family: "SimHei", "黑体", sans-serif; /* 黑体 */
+    }
+
+    /* 联盟基金相关弹窗 */
+    .popup-fund {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        background: #1a237e;
+        border-radius: 10px;
+        padding: 25px;
+        width: 280px;
+        z-index: 203;
+        display: none;
+    }
+    .popup-fund.show {
+        display: block;
+    }
+    .popup-fund h3 {
+        text-align: center;
+        margin-bottom: 15px;
+        color: #64b5f6;
+    }
+    .fund-item {
+        padding: 12px;
+        background: #283a5a;
+        border-radius: 6px;
+        text-align: center;
+        margin-bottom: 10px;
+        cursor: pointer;
+    }
+    .fund-item:hover {
+        background: #3a4a7a;
+    }
+
+    .popup-close {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-size: 1.2rem;
+        cursor: pointer;
+        color: #fff;
+    }
+    .popup-close:hover {
+        color: #64b5f6;
+    }
+
+    .more-btn {
+        display: block;
+        width: 180px;
+        margin: 20px auto 0;
+        padding: 12px;
+        background: #1a237e;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+        transition: background 0.3s;
+    }
+    .more-btn:hover {
+        background: #283593;
+    }
+
+    .fund-btn {
+        display: block;
+        width: 100%;
+        padding: 12px;
+        background: #1a237e;
+        color: #fff;
+        border-radius: 6px;
+        margin-bottom: 10px;
+        text-align: center;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+    .fund-btn:hover {
+        background: #283593;
+    }
+
+    .recruit-img {
+        width: 100%;
+        border-radius: 8px;
+        margin-top: 15px;
+    }
+    footer {
+        background: #121a30;
+        text-align: center;
+        padding: 15px;
+        margin-top: 20px;
+        opacity: 0.7;
+        font-size: 0.85rem;
+    }
+</style>
+</head>
+<body>
+
+<div class="overlay" id="overlay"></div>
+
+<!-- 系列扩张部落主弹窗 -->
+<div class="popup-series" id="popupSeries">
+    <span class="popup-close" onclick="closeAllPopups()">×</span>
+    <h3>系列扩张部落</h3>
+    <div class="series-item" data-series="强盛系列" data-tag-url="https://docs.qq.com/doc/DUktQWWFVZm9YWUxZ">强盛系列</div>
+    <div class="series-item" data-series="北斗系列" data-tag-url="https://docs.qq.com/doc/DUmFCaHdQUHB0cmVX">北斗系列</div>
+    <div class="series-item" data-series="山海经系列" data-tag-url="https://docs.qq.com/doc/DUnFqc2Z3UEVLbUxi">山海经系列</div>
+    <div class="series-item" data-series="江湖系列" data-tag-url="https://docs.qq.com/doc/DUmpwRmt5QXpHTnhP">江湖系列</div>
+</div>
+
+<!-- 所有部落类型通用详情弹窗 -->
+<div class="popup-tribe-detail" id="popupTribeDetail">
+    <span class="popup-close" onclick="closeAllPopups()">×</span>
+    <h3 id="tribeDetailTitle">部落详情</h3>
+    <div class="tribe-detail-item" id="tribeRule">部落招人门槛</div>
+    <div class="tribe-detail-item" id="tribeRegulation">部落相应规则</div>
+    <div class="tribe-detail-item" id="tribeTag">部落标签</div>
+</div>
+
+<!-- 主力部落标签弹窗 -->
+<div class="popup-tribe-tags" id="popupTribeTags">
+    <span class="popup-close" onclick="closeAllPopups()">×</span>
+    <h3>联盟主力部落标签</h3>
+    <div class="tribe-tag-item">1️⃣国服总部『大唐天子』#2L0UJ8L8Y</div>
+    <div class="tribe-tag-item">2️⃣国服第一分部『仲谋』#2YY2VC29L</div>
+    <div class="tribe-tag-item">3️⃣国服第二分部『神州十六号』#2YJYP9JJY</div>
+    <div class="tribe-tag-item">4️⃣国服第三分部『皮皮卡』#2Q8RY80JR</div>
+    <div class="tribe-tag-item">5️⃣国服第四分部『联盟之家』#2QVU9RLCP</div>
+    <div class="tribe-tag-item">6️⃣国服第五分部『DT辰逸阁』#2QLL88JJ8</div>
+    <div class="tribe-tag-item">7️⃣国服第六分部『九霄盟』#2QY0CGR00</div>
+    <div class="tribe-tag-item">8️⃣国服第七分部『青墨书阁』#2Q99UL90J</div>
+    <div class="tribe-tag-item">9️⃣国服第八分部『预备营』#2QU0LLUV0</div>
+</div>
+
+<!-- 联盟基金相关弹窗 -->
+<div class="popup-fund" id="popupFundStructure">
+    <span class="popup-close" onclick="closeAllPopups()">×</span>
+    <h3>联盟基金构成</h3>
+    <div style="line-height:1.8;">
+        65%来源于DT联盟的创作者代码收入<br>
+        20%来源于DT联盟的官方公众号收入<br>
+        15%来源于DT联盟的辅助小程序收入
+    </div>
+</div>
+
+<div class="popup-fund" id="popupFundUse">
+    <span class="popup-close" onclick="closeAllPopups()">×</span>
+    <h3>联盟基金用途</h3>
+    <div style="line-height:1.8;">
+        主要用于：DT联盟旗下部落的招人支出、奶号支出、每月福利支出、节日福利支出、联盟官方比赛奖励支出……
+    </div>
+</div>
+
+<div class="popup-fund" id="popupSupportChoose">
+    <span class="popup-close" onclick="closeAllPopups()">×</span>
+    <h3>支持联盟基金</h3>
+    <div class="fund-item" id="goCodeSupport">联盟代码支持</div>
+    <div class="fund-item" id="goLoveSupport">为联盟发电支持</div>
+</div>
+
+<div class="popup-fund" id="popupCodeSupport">
+    <span class="popup-close" onclick="closeAllPopups()">×</span>
+    <h3>联盟代码支持</h3>
+    <div style="line-height:1.8;">
+        每周在游戏内商店绑定联盟的创作者代码：dt8888<br>
+        绑定后无论是否充值都是对联盟的支持<br>
+        DT联盟因为有我们而更加强大<br><br>
+        ●请记得每周检查代码是否有过期需要重新绑定哦
+    </div>
+</div>
+
+<div class="popup-fund" id="popupLoveSupport">
+    <span class="popup-close" onclick="closeAllPopups()">×</span>
+    <h3>为联盟发电支持</h3>
+    <div style="line-height:1.8;">
+        在DT联盟官方微信公众号【轩神辅助coc】的主页置顶文章中的“DT联盟详情介绍”这篇文章滑至末尾点击“喜欢作者”即可为DT联盟发电<br><br>
+        温馨提示：请量力而行，即使再普通的成员，DT联盟仍然一样欢迎您！
+    </div>
+</div>
+
+<!-- 菜单按钮 -->
+<div class="menu-btn" id="menuBtn">
+    <span></span>
+    <span></span>
+    <span></span>
+</div>
+
+<!-- 侧边栏 -->
+<div class="sidebar" id="sidebar">
+    <a href="#about">关于DT联盟</a>
+    <a href="#tribes">旗下部落</a>
+    <a href="#fund">DT联盟基金</a>
+    <a href="#groups">各大部落群</a>
+    <a href="#recruit">部落管理招募</a>
+    <a href="#log">DT联盟管理更新日志</a>
+    <a href="#match">DT联盟官方赛事</a>
+    <a href="#contact">DT联盟官方媒体</a>
+</div>
+
+<!-- 头部 -->
+<header>
+    <h1>DT联盟</h1>
+    <p>海纳百川｜部落不倒｜我们不散</p>
+</header>
+
+<!-- 滚动通知 -->
+<div class="scroll-notice">
+    <div class="notice-fixed">重要通知📢</div>
+    <div class="scroll-wrap">
+        <div class="scroll-notice-content">
+            🎉 DT联盟诚招部落管理！活跃玩家优先，共筑荣耀！｜💰 联盟基金公开透明，用于部落发展与福利！｜🤝 欢迎各友好部落加盟合作！
+        </div>
+    </div>
+</div>
+
+<!-- 主要内容容器 -->
+<div class="container">
+    <div class="section" id="about">
+        <h2>✨关于DT联盟</h2>
+        <p>DT联盟始于2020年夏，致力于部落冲突中的部落团队组织联盟、更新爆料、阵型推荐、辅助服务等，在后面，我们还将加入更多游戏项目……</p>
+        <a href="https://mp.weixin.qq.com/s/u3vSoq-O5W3cHpAP8WO_dg" class="more-btn" target="_blank">点我查看更多详情</a>
+    </div>
+
+    <!-- 旗下部落板块 -->
+    <div class="section" id="tribes">
+        <h2>✨旗下部落</h2>
+        <div class="tribe-buttons">
+            <button class="tribe-button" data-type="main" data-name="主力部落" data-tag-url="main">
+                主力部落
+                <small>（点我查看详情）</small>
+            </button>
+            <button class="tribe-button" data-type="series" data-name="系列扩张部落" data-tag-url="">
+                系列扩张部落
+                <small>（点我查看详情）</small>
+            </button>
+            <button class="tribe-button" data-type="normal" data-name="加盟合作部落" id="joinCoopBtn">
+                加盟合作部落
+                <small>（点我查看详情）</small>
+            </button>
+            <button class="tribe-button" data-type="normal" data-name="辅助功能性部落" id="funcAssistBtn">
+                辅助功能性部落
+                <small>（点我查看详情）</small>
+            </button>
+        </div>
+    </div>
+
+    <div class="section" id="fund">
+        <h2>✨DT联盟基金</h2>
+        <div class="fund-btn" onclick="showFundPopup('popupFundStructure')">联盟基金构成</div>
+        <div class="fund-btn" onclick="showFundPopup('popupFundUse')">联盟基金用途</div>
+        <div class="fund-btn" onclick="showFundPopup('popupSupportChoose')">支持联盟基金</div>
+    </div>
+
+    <div class="section" id="groups">
+        <h2>✨各大部落群</h2>
+        <a href="https://docs.qq.com/doc/DUmJucUFLbGdHaHVp" class="jump-btn" target="_blank">点我跳转</a>
+    </div>
+
+    <div class="section" id="recruit">
+        <h2>✨部落管理招募</h2>
+        <!-- 核心修改：替换图片地址为你提供的招募图片 -->
+        <img src="https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/e1598d3286e54f74aa45fc04d7617f0a.jpg~tplv-a9rns2rl98-24:720:720.jpg?lk3s=8e244e95&rcl=202603201603326CB7171EB8E2B4134447&rrcfp=8a172a1a&x-expires=1774598612&x-signature=SRn9hwUPTQLIibKHwemgVUg3Z1o%3D" alt="招募" class="recruit-img">
+        
+        <!-- DT联盟管理更新日志板块 -->
+        <div class="section" id="log" style="margin-top: 15px; margin-bottom: 0;">
+            <h2>✨DT联盟管理更新日志</h2>
+            <a href="https://docs.qq.com/doc/DUnhDUVBrRGtnZ2R1" class="jump-btn" target="_blank">重要通知更新日志</a>
+        </div>
+    </div>
+
+    <!-- DT联盟官方赛事板块 -->
+    <div class="section" id="match">
+        <h2>✨DT联盟官方赛事</h2>
+        <a href="https://docs.qq.com/sheet/DUk5Gd25TUHZFR2NI" class="jump-btn" target="_blank">近期联盟部落赛程</a>
+    </div>
+
+    <div class="section" id="contact">
+        <h2>✨DT联盟官方媒体</h2>
+        <div style="font-size: 0.75rem; line-height: 1.8;">
+            ●QQ官方频道：XSFZ258079<br>
+            ●微信公众号：轩神辅助coc
+        </div>
+    </div>
+</div>
+
+<!-- 页脚 -->
+<footer>
+    <p>&copy; 2026 DT联盟. All Rights Reserved.</p>
+</footer>
+
+<script>
+    const menuBtn = document.getElementById('menuBtn');
+    const sidebar = document.getElementById('sidebar');
+    // 获取加盟合作和辅助功能性部落按钮
+    const joinCoopBtn = document.getElementById('joinCoopBtn');
+    const funcAssistBtn = document.getElementById('funcAssistBtn');
+    // 标记当前打开的是哪个特殊部落弹窗
+    let currentSpecialTribe = '';
+
+    // 侧边栏菜单逻辑
+    menuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        sidebar.classList.toggle('show');
+        menuBtn.classList.toggle('active');
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
+            sidebar.classList.remove('show');
+            menuBtn.classList.remove('active');
+        }
+    });
+
+    // 弹窗相关元素
+    const overlay = document.getElementById('overlay');
+    const popupSeries = document.getElementById('popupSeries');
+    const popupTribeDetail = document.getElementById('popupTribeDetail');
+    const popupTribeTags = document.getElementById('popupTribeTags');
+    
+    // 存储当前选中部落的标签链接和类型
+    let currentTagUrl = '';
+    let currentTribeType = '';
+
+    // 关闭所有弹窗
+    function closeAllPopups() {
+        popupSeries.classList.remove('show');
+        popupTribeDetail.classList.remove('show');
+        popupTribeTags.classList.remove('show');
+        document.querySelectorAll('.popup-fund').forEach(p => p.classList.remove('show'));
+        overlay.classList.remove('show');
+        currentTagUrl = '';
+        currentTribeType = '';
+        currentSpecialTribe = ''; // 重置特殊部落标记
+    }
+
+    // 点击遮罩层关闭弹窗
+    overlay.addEventListener('click', closeAllPopups);
+
+    // 联盟基金弹窗逻辑
+    function showFundPopup(id) {
+        closeAllPopups();
+        document.getElementById(id).classList.add('show');
+        overlay.classList.add('show');
+    }
+
+    document.getElementById('goCodeSupport').onclick = () => showFundPopup('popupCodeSupport');
+    document.getElementById('goLoveSupport').onclick = () => showFundPopup('popupLoveSupport');
+
+    // 旗下部落按钮点击逻辑（拆分通用和特殊部落）
+    document.querySelectorAll('.tribe-button').forEach(button => {
+        // 排除加盟合作和辅助功能性部落，它们有专属逻辑
+        if (button.id !== 'joinCoopBtn' && button.id !== 'funcAssistBtn') {
+            button.addEventListener('click', () => {
+                const type = button.dataset.type;
+                const name = button.dataset.name;
+                currentTagUrl = button.dataset.tagUrl || '';
+                currentTribeType = type;
+                
+                closeAllPopups();
+                overlay.classList.add('show');
+
+                // 主力部落
+                if (type === 'main') {
+                    document.getElementById('tribeDetailTitle').textContent = name;
+                    popupTribeDetail.classList.add('show');
+                }
+                // 系列扩张部落
+                else if (type === 'series') {
+                    popupSeries.classList.add('show');
+                }
+            });
+        }
+    });
+
+    // 加盟合作部落按钮专属点击逻辑
+    joinCoopBtn.addEventListener('click', () => {
+        closeAllPopups();
+        overlay.classList.add('show');
+        currentSpecialTribe = 'joinCoop';
+        document.getElementById('tribeDetailTitle').textContent = '加盟合作部落';
+        popupTribeDetail.classList.add('show');
+    });
+
+    // 辅助功能性部落按钮专属点击逻辑
+    funcAssistBtn.addEventListener('click', () => {
+        closeAllPopups();
+        overlay.classList.add('show');
+        currentSpecialTribe = 'funcAssist';
+        document.getElementById('tribeDetailTitle').textContent = '辅助功能性部落';
+        popupTribeDetail.classList.add('show');
+    });
+
+    // 系列扩张部落子项点击逻辑（保持不变）
+    document.querySelectorAll('.series-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const seriesName = item.dataset.series;
+            currentTagUrl = item.dataset.tagUrl;
+            currentTribeType = 'series';
+            
+            // 更新部落详情弹窗标题
+            document.getElementById('tribeDetailTitle').textContent = seriesName;
+            
+            // 关闭父弹窗，打开部落详情弹窗
+            popupSeries.classList.remove('show');
+            popupTribeDetail.classList.add('show');
+        });
+    });
+
+    // 部落详情弹窗选项点击逻辑（拆分通用和特殊逻辑）
+    // 部落招人门槛 - 通用跳转链接（所有部落都一样）
+    document.getElementById('tribeRule').addEventListener('click', () => {
+        window.open('https://docs.qq.com/doc/DUmpUUE9YR2VvV2Vt', '_blank');
+    });
+
+    // 部落相应规则 - 通用跳转链接（所有部落都一样）
+    document.getElementById('tribeRegulation').addEventListener('click', () => {
+        window.open('https://docs.qq.com/doc/DUmxranNYTkRkcmRL', '_blank');
+    });
+
+    // 部落标签 - 专属逻辑
+    document.getElementById('tribeTag').addEventListener('click', () => {
+        // 1. 处理特殊部落（加盟合作/辅助功能性）
+        if (currentSpecialTribe === 'joinCoop') {
+            // 加盟合作部落标签跳转
+            window.open('https://docs.qq.com/doc/DUmN2cXB0R2JUbmNO', '_blank');
+        } else if (currentSpecialTribe === 'funcAssist') {
+            // 辅助功能性部落标签跳转
+            window.open('https://docs.qq.com/doc/DUk1td09Md2xtUk92', '_blank');
+        }
+        // 2. 处理主力部落
+        else if (currentTribeType === 'main') {
+            popupTribeDetail.classList.remove('show');
+            popupTribeTags.classList.add('show');
+        }
+        // 3. 处理系列扩张部落
+        else if (currentTribeType === 'series' && currentTagUrl) {
+            window.open(currentTagUrl, '_blank');
+        }
+    });
+</script>
+</body>
+</html>
